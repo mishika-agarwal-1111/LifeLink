@@ -227,10 +227,10 @@ If a blood bank initially confirms 2 units but later can only release 1, LifeLin
 ## 10. BloodRadar — City Blood Map
 
 A visual network view:
-- 🔴 Critical
-- 🟠 Low
-- 🟢 Healthy
-- 🔵 Excess
+- RED Critical
+- YELLOW Low
+- GREEN Healthy
+- BLUE Excess
 
 Identifies patterns like an AB- shortage cluster near nearby excess inventory, giving blood-bank operators a quick network-level view.
 

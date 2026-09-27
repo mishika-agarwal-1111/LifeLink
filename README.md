@@ -52,7 +52,10 @@ For the full breakdown of each module, escalation logic, and system design, see 
 
 ## Team
 
-*LIFELINK*
+*LIFELINK* 
+.
+.
+.
 Gaurav Pandey | 
 Mishika Agarwal |
 Om Saini

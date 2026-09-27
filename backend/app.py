@@ -25,7 +25,7 @@ def health():
     return jsonify({
         "status": "ok",
         "service": "LifeLink Python API",
-        "database": "Temporary server storage"
+        "database": "Supabase PostgreSQL"
     })
 
 

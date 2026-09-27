@@ -126,9 +126,19 @@ def health():
 
 @app.route("/api/data", methods=["GET"])
 def get_data():
-    return jsonify(app_data)
+    hospitals = supabase.table("hospitals").select("*").execute().data
+    blood_banks = supabase.table("blood_banks").select("*").execute().data
+    donors = supabase.table("donors").select("*").execute().data
+    requests = supabase.table("blood_requests").select("*").execute().data
+    alerts = supabase.table("alerts").select("*").execute().data
 
-
+    return jsonify({
+        "hospitals": hospitals,
+        "bloodBanks": blood_banks,
+        "donors": donors,
+        "requests": requests,
+        "alerts": alerts
+    })
 @app.route("/api/data", methods=["POST"])
 def save_data():
     global app_data

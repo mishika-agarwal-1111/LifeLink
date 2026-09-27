@@ -23,7 +23,7 @@ app_data = {
 @app.route("/api/migrate-hospitals", methods=["POST"])
 def migrate_hospitals():
     try:
-        with open("hospitals.json", "r", encoding="utf-8") as file:
+        with open(os.path.join(os.path.dirname(__file__), "hospitals.json"), "r", encoding="utf-8") as file:
             hospitals = json.load(file)
 
         for hospital in hospitals:

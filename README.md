@@ -10,8 +10,7 @@
 
 > "The blood exists, but the person who needs it cannot find it quickly."
 
-One blood bank can have excess inventory while another nearby is facing a shortage — with zero coordination between them. Blood also expires unused while, elsewhere, there's demand for the exact same group. LifeLink bridges these disconnected situations.
-
+One blood bank may have surplus inventory while another nearby faces a critical shortage, with no effective way to coordinate between them. Meanwhile, valuable blood units can expire unused while patients elsewhere urgently need the same blood group. LifeLink bridges this gap by connecting blood banks, patients, and verified donors through a unified, intelligent network.
 ---
 
 ## What LifeLink Does

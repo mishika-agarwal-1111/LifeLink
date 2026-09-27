@@ -21,6 +21,45 @@ app_data = {
 }
 
 @app.route("/api/migrate-hospitals", methods=["POST"])
+@app.route("/api/migrate-blood-banks", methods=["POST"])
+def migrate_blood_banks():
+    try:
+        with open(os.path.join(os.path.dirname(__file__), "blood_banks.json"), "r", encoding="utf-8") as file:
+            blood_banks = json.load(file)
+
+        for bank in blood_banks:
+            bank_data = {
+                "id": bank["id"],
+                "name": bank["name"],
+                "city": bank["city"],
+                "verified": bank["verified"]
+            }
+
+            supabase.table("blood_banks").upsert(bank_data).execute()
+
+            inventory = bank.get("inventory", {})
+
+            for blood_group, units in inventory.items():
+                inventory_data = {
+                    "blood_bank_id": bank["id"],
+                    "blood_group": blood_group,
+                    "units": units
+                }
+
+                supabase.table("blood_inventory").upsert(
+                    inventory_data
+                ).execute()
+
+        return jsonify({
+            "status": "success",
+            "migrated": len(blood_banks)
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 def migrate_hospitals():
     try:
         with open(os.path.join(os.path.dirname(__file__), "hospitals.json"), "r", encoding="utf-8") as file:

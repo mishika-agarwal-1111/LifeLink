@@ -1,3 +1,4 @@
+import json
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from supabase import create_client
@@ -19,7 +20,34 @@ app_data = {
     "alerts": []
 }
 
+@app.route("/api/migrate-hospitals", methods=["POST"])
+def migrate_hospitals():
+    try:
+        with open("hospitals.json", "r", encoding="utf-8") as file:
+            hospitals = json.load(file)
 
+        for hospital in hospitals:
+            data = {
+                "id": hospital["id"],
+                "name": hospital["name"],
+                "city": hospital["city"],
+                "distance_km": hospital["dist"],
+                "blood_need": hospital["needs"],
+                "verified": hospital["verified"]
+            }
+
+            supabase.table("hospitals").upsert(data).execute()
+
+        return jsonify({
+            "status": "success",
+            "migrated": len(hospitals)
+        })
+
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
 @app.route("/api/health", methods=["GET"])
 def health():
     return jsonify({

@@ -6,6 +6,11 @@ import os
 app = Flask(__name__)
 CORS(app)
 
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_SECRET_KEY = os.getenv("SUPABASE_SECRET_KEY")
+
+supabase = create_client(SUPABASE_URL, SUPABASE_SECRET_KEY)
+
 app_data = {
     "bloodBanks": [],
     "hospitals": [],

@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>LifeLink — Blood Network</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#faf6f0;--panel:#ffffff;--panel2:#f7ede4;--line:#e6d9c9;--red:#8c1522;--red2:#c8283a;--redlight:#fdeceb;--txt:#241412;--sub:#7c6f63;--gold:#c99a3e;--green:#1f7a4d;--amber:#a5690a;--sidebarBg:#3a0c12;--sidebarTxt:#f3e3d8;
+padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px);background:var(--bg);scroll-behavior:smooth}
+body{font-family:'Poppins','Segoe UI',Arial,sans-serif;background:var(--bg);color:var(--txt);min-height:100%}
+.mono{font-family:'JetBrains Mono','Courier New',monospace;letter-spacing:.4px}
+a{color:inherit;text-decoration:none}
+::-webkit-scrollbar{width:8px}::-webkit-scrollbar-thumb{background:#d8c7b4;border-radius:4px}
+.pulse{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--red2);box-shadow:0 0 8px var(--red2);animation:p 1.4s infinite}
+@keyframes p{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+.reveal{opacity:0;transform:translateY(18px);transition:opacity .6s ease,transform .6s ease}
+.reveal.in{opacity:1;transform:translateY(0)}
+.badge{font-size:11px;padding:3px 10px 3px 8px;border-radius:20px;border:1px solid var(--line);font-family:'JetBrains Mono',monospace;font-weight:600;display:inline-flex;align-items:center;gap:5px}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor}
+.badge.crit{color:#8c1522;border-color:#e3b3ae;background:#fdeceb}
+.badge.low{color:var(--amber);border-color:#ecd5ac;background:#fbf1de}
+.badge.ok{color:var(--green);border-color:#bfe0cd;background:#e9f7ef}
+.badge.exc{color:#1c5a8c;border-color:#bcd8ee;background:#eaf3fb}
+/* layout */
+#app{display:flex;min-height:100vh}
+#sidebar{width:250px;flex:none;background:linear-gradient(180deg,#430e15,#2c090e);border-right:1px solid #250509;position:sticky;top:0;height:100vh;overflow-y:auto;padding:20px 0;z-index:50}
+#sidebar .logo{padding:0 20px 18px;border-bottom:1px solid #5a1b22;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+#sidebar .logo .mark{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--red2),var(--gold));display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 3px 10px rgba(0,0,0,.35)}
+#sidebar .logo b{color:#fff;font-size:19px;font-weight:700}
+#sidebar .grp{font-size:10px;color:#c9a89a;text-transform:uppercase;padding:16px 20px 7px;letter-spacing:1.5px;font-weight:600}
+#sidebar .item{display:flex;align-items:center;gap:10px;padding:9px 18px;margin:1px 10px;border-radius:8px;font-size:13.5px;color:var(--sidebarTxt);cursor:pointer;border-left:3px solid transparent;transition:.15s}
+#sidebar .item .ic{width:16px;text-align:center;font-size:13px;opacity:.9}
+#sidebar .item:hover{background:#4d1017;color:#fff;transform:translateX(2px)}
+#sidebar .item.active{background:linear-gradient(90deg,#6b1319,#5c1017);color:#fff;border-left-color:var(--gold);box-shadow:0 2px 8px rgba(0,0,0,.3)}
+#hamburger{display:none;position:fixed;top:12px;left:12px;z-index:100;background:var(--sidebarBg);border:1px solid #5a1b22;color:#fff;width:38px;height:38px;border-radius:8px;font-size:18px;box-shadow:0 3px 10px rgba(0,0,0,.2)}
+#main{flex:1;min-width:0;overflow-y:auto;height:100vh}
+.page{display:none;padding:28px 34px 80px;max-width:1220px}
+.page.active{display:block;animation:fadeUp .4s ease}
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:22px;flex-wrap:wrap;gap:10px}
+.topbar h1{font-size:25px;font-weight:700;color:var(--red)}
+.demoTag{font-size:11px;color:var(--red);border:1px solid #e3b3ae;background:var(--redlight);padding:5px 12px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-weight:600}
+.grid{display:grid;gap:16px}
+.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}.g2{grid-template-columns:repeat(2,1fr)}
+@media(max-width:900px){.g4{grid-template-columns:repeat(2,1fr)}.g3{grid-template-columns:repeat(2,1fr)}.g2{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;box-shadow:0 2px 10px rgba(140,21,34,.06);transition:transform .18s,box-shadow .18s}
+.card:hover{transform:translateY(-3px);box-shadow:0 10px 24px rgba(140,21,34,.13)}
+.stat{position:relative;overflow:hidden}
+.stat .n{font-size:28px;font-weight:800;font-family:'JetBrains Mono',monospace;background:linear-gradient(90deg,var(--red),var(--red2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat .l{font-size:11.5px;color:var(--sub);margin-top:5px;font-weight:600;letter-spacing:.3px}
+.section{margin:34px 0}
+.section h2{font-size:18px;font-weight:700;border-left:4px solid var(--red);padding-left:12px;margin-bottom:16px;color:var(--red)}
+.controls{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px}
+select,input,button{background:var(--panel2);border:1px solid var(--line);color:var(--txt);padding:9px 12px;border-radius:8px;font-size:13px;font-family:inherit}
+select:focus,input:focus{outline:2px solid var(--red2);outline-offset:1px}
+button{cursor:pointer;font-weight:600;transition:.15s}
+.btn-red{background:linear-gradient(135deg,var(--red2),var(--red));border-color:var(--red);color:#fff;border-radius:24px;padding:9px 20px;box-shadow:0 4px 14px rgba(140,21,34,.28)}
+.btn-red:hover{transform:translateY(-2px);box-shadow:0 8px 20px rgba(140,21,34,.35)}
+.btn-ghost{background:#fff;border:1.5px solid var(--red);color:var(--red);border-radius:24px;padding:8px 18px}
+.btn-ghost:hover{background:var(--redlight);transform:translateY(-1px)}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th,td{padding:11px 12px;text-align:left;border-bottom:1px solid var(--line)}
+th{color:var(--sub);font-size:10.5px;text-transform:uppercase;letter-spacing:.6px;background:var(--panel2);position:sticky;top:0}
+tr:nth-child(even) td{background:#fdfaf6}
+tr:hover td{background:var(--redlight)}
+.tablewrap{overflow:auto;border-radius:12px;border:1px solid var(--line);max-height:520px}
+.feed{display:flex;flex-direction:column;gap:8px;max-height:none}
+.feed .row{display:flex;gap:10px;font-size:13px;padding:9px 12px;border-bottom:1px solid var(--line);border-radius:8px}
+.feed .row:hover{background:var(--redlight)}
+.feed .t{color:var(--sub);font-size:11px;font-family:'JetBrains Mono',monospace;flex:none;width:60px}
+.bar{height:9px;background:var(--panel2);border-radius:5px;overflow:hidden;border:1px solid var(--line)}
+.bar>div{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));transition:width .5s}
+.hero{position:relative;min-height:78vh;display:flex;flex-direction:column;justify-content:center;padding:60px 40px;text-align:center;background:linear-gradient(180deg,#fff6f2,var(--bg));border-bottom:1px solid var(--line);overflow:hidden}
+.hero::before{content:'';position:absolute;top:-120px;right:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(140,21,34,.10),transparent 70%);animation:floaty 7s ease-in-out infinite}
+.hero::after{content:'';position:absolute;bottom:-140px;left:-100px;width:380px;height:380px;border-radius:50%;background:radial-gradient(circle,rgba(201,154,62,.14),transparent 70%);animation:floaty 8s ease-in-out infinite reverse}
+.hero>*{position:relative;z-index:1}
+.hero .heroIcon{font-size:38px;margin-bottom:6px;animation:floaty 3s ease-in-out infinite}
+.hero h1{font-size:52px;letter-spacing:.5px;color:var(--red);font-weight:800;line-height:1.15}
+.hero h1 span{background:linear-gradient(135deg,var(--gold),var(--red2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--sub);max-width:580px;margin:16px auto 26px;font-size:15.5px}
+.landingSec{padding:56px 40px;border-bottom:1px solid var(--line);max-width:1300px;margin:0 auto}
+.landingSec h2{font-size:28px;margin-bottom:24px;color:var(--red);font-weight:700}
+.flowRow{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;margin:30px 0}
+.flowNode{background:var(--panel);border:1px solid var(--line);padding:13px 20px;border-radius:24px;font-size:13px;font-family:'JetBrains Mono',monospace;box-shadow:0 2px 8px rgba(140,21,34,.06)}
+.flowArrow{color:var(--gold);font-size:18px}
+.node{width:14px;height:14px;border-radius:50%;display:inline-block;margin-right:8px;box-shadow:0 0 0 4px rgba(0,0,0,.04)}
+.hlink{color:var(--red2);cursor:pointer;font-size:12.5px;font-weight:600}
+.hlink:hover{text-decoration:underline}
+#toast{position:fixed;bottom:20px;right:20px;background:linear-gradient(135deg,var(--red2),var(--red));color:#fff;border:1px solid var(--red2);padding:13px 20px;border-radius:10px;font-size:13px;max-width:320px;z-index:200;display:none;box-shadow:0 8px 24px rgba(140,21,34,.35)}
+.sosStage{display:flex;flex-wrap:wrap;gap:6px;margin:16px 0}
+.sosStage .s{flex:1;min-width:100px;text-align:center;padding:11px 4px;border:1px solid var(--line);border-radius:10px;font-size:11px;color:var(--sub);font-weight:600}
+.sosStage .s.done{border-color:var(--green);color:var(--green);background:#e9f7ef}
+.sosStage .s.now{border-color:var(--red2);color:var(--red2);background:var(--redlight);animation:p 1.2s infinite}
+.iconCircle{width:46px;height:46px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:20px;background:linear-gradient(135deg,var(--redlight),#fff);border:1px solid var(--line);margin-bottom:10px}
+@media(max-width:800px){#sidebar{position:fixed;left:-260px;transition:.2s;z-index:99}#sidebar.open{left:0}#hamburger{display:block}.page{padding:70px 16px 60px}.hero{padding:70px 16px}.landingSec{padding:40px 16px}.hero h1{font-size:36px}}
+</style>
+</head>
+<body>
+<button id="hamburger" onclick="document.getElementById('sidebar').classList.toggle('open')">☰</button>
+<div id="app">
+<div id="sidebar">
+  <div class="logo"><div class="mark">🩸</div><b>LIFE<span style="color:#ff8a94">LINK</span></b></div>
+  <div style="font-size:10px;color:#c9a89a;padding:0 20px 10px;display:flex;align-items:center;gap:5px"><span class="pulse"></span> DEMO NETWORK</div>
+  <div class="grp">Overview</div>
+  <div class="item" data-r="landing"><span class="ic">🏠</span>Landing Page</div>
+  <div class="item" data-r="dash"><span class="ic">📊</span>Dashboard</div>
+  <div class="item" data-r="network"><span class="ic">🌐</span>Network Overview</div>
+  <div class="grp">Blood Operations</div>
+  <div class="item" data-r="search"><span class="ic">🔍</span>BloodSearch</div>
+  <div class="item" data-r="predict"><span class="ic">📈</span>BloodPredict</div>
+  <div class="item" data-r="rescue"><span class="ic">🛟</span>BloodRescue</div>
+  <div class="item" data-r="balance"><span class="ic">⚖️</span>BloodBalance</div>
+  <div class="item" data-r="radar"><span class="ic">📡</span>BloodRadar</div>
+  <div class="grp">People</div>
+  <div class="item" data-r="donor"><span class="ic">🫀</span>BloodDonor</div>
+  <div class="item" data-r="user"><span class="ic">🧑</span>Patient Dashboard</div>
+  <div class="item" data-r="hospital"><span class="ic">🏥</span>Hospital Dashboard</div>
+  <div class="item" data-r="bank"><span class="ic">🏦</span>Blood Bank Dashboard</div>
+  <div class="grp">Emergency</div>
+  <div class="item" data-r="sos"><span class="ic">🚨</span>BloodSOS</div>
+  <div class="grp">System</div>
+  <div class="item" data-r="notif"><span class="ic">🔔</span>Notifications</div>
+  <div class="item" data-r="settings"><span class="ic">⚙️</span>Settings</div>
+</div>
+<div id="main">
+<!-- LANDING -->
+<div class="page active" id="p-landing">
+ <div class="hero">
+  <div class="heroIcon">🩸</div>
+  <div style="font-size:12px;color:var(--sub);display:flex;align-items:center;gap:6px;justify-content:center"><span class="pulse"></span> DEMO NETWORK — SIMULATED DATA</div>
+  <h1>ONE NETWORK.<br>EVERY <span>DROP</span> CONNECTED.</h1>
+  <p>LifeLink connects donors, blood banks, hospitals and patients in one intelligent network — finding blood faster, predicting shortages, and coordinating emergencies in real time.</p>
+  <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+   <button class="btn-red" onclick="nav('dash')">ENTER LIFELINK</button>
+   <button class="btn-ghost" onclick="nav('sos')">🚨 EMERGENCY SOS</button>
+  </div>
+  <div class="grid g4" style="margin-top:40px;max-width:900px;margin-left:auto;margin-right:auto" id="landingStats"></div>
+ </div>
+ <div class="landingSec reveal">
+  <h2>The Problem</h2>
+  <div class="grid g4">
+   <div class="card"><div class="iconCircle">🏝️</div><b>Isolated Banks</b><p style="color:var(--sub);font-size:13px;margin-top:6px">Blood banks operate without shared visibility into nearby stock.</p></div>
+   <div class="card"><div class="iconCircle">⏳</div><b>Expiry Waste</b><p style="color:var(--sub);font-size:13px;margin-top:6px">Usable units expire unused while other facilities face shortages.</p></div>
+   <div class="card"><div class="iconCircle">🕑</div><b>Slow Emergencies</b><p style="color:var(--sub);font-size:13px;margin-top:6px">Coordination during critical requests takes hours, not minutes.</p></div>
+   <div class="card"><div class="iconCircle">❓</div><b>No Prediction</b><p style="color:var(--sub);font-size:13px;margin-top:6px">Shortages are discovered only after they already happen.</p></div>
+  </div>
+ </div>
+ <div class="landingSec reveal">
+  <h2>How LifeLink Works</h2>
+  <div class="flowRow mono">
+   <div class="flowNode">DONOR</div><div class="flowArrow">→</div><div class="flowNode">LIFELINK NETWORK</div><div class="flowArrow">→</div>
+   <div class="flowNode">BLOOD BANK</div><div class="flowArrow">→</div><div class="flowNode">PREDICTION</div><div class="flowArrow">→</div>
+   <div class="flowNode">REDISTRIBUTION</div><div class="flowArrow">→</div><div class="flowNode">HOSPITAL</div><div class="flowArrow">→</div><div class="flowNode">PATIENT</div>
+  </div>
+ </div>
+ <div class="landingSec reveal">
+  <h2>Platform Modules</h2>
+  <div class="grid g3" id="featureCards"></div>
+ </div>
+ <div class="landingSec reveal">
+  <h2>Role-Based Access</h2>
+  <div class="grid g4">
+   <div class="card"><div class="iconCircle">🧑</div><b>Patient / User</b><p style="color:var(--sub);font-size:12.5px;margin:8px 0">Search blood, raise requests, track status.</p><button class="btn-ghost" onclick="nav('user')">Enter as Patient</button></div>
+   <div class="card"><div class="iconCircle">🫀</div><b>Donor</b><p style="color:var(--sub);font-size:12.5px;margin:8px 0">Manage availability, eligibility, history.</p><button class="btn-ghost" onclick="nav('donor')">Enter as Donor</button></div>
+   <div class="card"><div class="iconCircle">🏦</div><b>Blood Bank</b><p style="color:var(--sub);font-size:12.5px;margin:8px 0">Manage inventory, transfers, requests.</p><button class="btn-ghost" onclick="nav('bank')">Enter as Bank</button></div>
+   <div class="card"><div class="iconCircle">🏥</div><b>Hospital</b><p style="color:var(--sub);font-size:12.5px;margin:8px 0">Raise requests, track deliveries.</p><button class="btn-ghost" onclick="nav('hospital')">Enter as Hospital</button></div>
+  </div>
+ </div>
+ <div class="landingSec reveal" style="text-align:center;border-bottom:none">
+  <h2>One Network. Every Drop Connected.</h2>
+  <button class="btn-red" onclick="nav('dash')">ENTER LIFELINK</button>
+ </div>
+</div>
+
+<!-- DASHBOARD -->
+<div class="page" id="p-dash">
+ <div class="topbar"><h1>Network Dashboard</h1><span class="demoTag"><span class="pulse"></span> DEMO NETWORK</span></div>
+ <div class="grid g4" id="dashStats"></div>
+ <div class="section"><h2>Blood Group Availability</h2><div class="grid g4" id="dashGroups"></div></div>
+ <div class="section"><h2>Active Requests</h2><div class="tablewrap"><table id="dashReqTable"></table></div></div>
+ <div class="section"><h2>Recent Activity</h2><div class="feed" id="dashActivity"></div></div>
+ <div class="section"><h2>Network Insight</h2><div class="card" style="color:var(--sub);font-size:13.5px" id="dashInsight"></div></div>
+</div>
+
+<!-- SEARCH -->
+<div class="page" id="p-search">
+ <div class="topbar"><h1>BloodSearch</h1><span class="demoTag">Search + Match</span></div>
+ <div class="controls">
+  <select id="s-group" onchange="renderSearch()"></select>
+  <select id="s-comp" onchange="renderSearch()"><option>Whole Blood</option><option>Plasma</option><option>Platelets</option></select>
+  <select id="s-radius" onchange="renderSearch()"><option value="5">5 km</option><option value="10">10 km</option><option value="25" selected>25 km</option><option value="50">50 km</option><option value="100">100 km</option></select>
+  <select id="s-urgency" onchange="renderSearch()"><option>Normal</option><option>Urgent</option><option>Emergency</option></select>
+  <button class="btn-ghost" onclick="resetSearch()">RESET FILTERS</button>
+ </div>
+ <div class="grid g4" id="searchStats"></div>
+ <div class="section"><h2>Matching Blood Banks</h2><div class="tablewrap"><table id="searchTable"></table></div></div>
+ <div class="section"><h2>Request This Blood</h2><div class="card"><div class="controls">
+  <input id="req-patient" placeholder="Patient / Hospital name" value="Patient A. Sharma">
+  <input id="req-units" type="number" value="2" min="1" style="width:80px">
+  <button class="btn-red" onclick="createRequestFromSearch()">REQUEST BLOOD</button>
+ </div><div id="req-msg" style="color:var(--green);font-size:13px;margin-top:8px"></div></div></div>
+</div>
+
+<!-- PREDICT -->
+<div class="page" id="p-predict">
+ <div class="topbar"><h1>BloodPredict</h1><span class="demoTag">Shortage Forecasting</span></div>
+ <div class="controls">
+  <select id="pr-group" onchange="renderPredict()"></select>
+  <select id="pr-period" onchange="renderPredict()"><option value="7">7 days</option><option value="14">14 days</option><option value="30">30 days</option></select>
+ </div>
+ <div class="grid g4" id="predictStats"></div>
+ <div class="section"><h2>Projected Inventory</h2><div class="card"><div class="bar" style="margin-bottom:8px"><div id="pr-bar" style="width:50%"></div></div><div id="pr-bartext" class="mono" style="font-size:12px;color:var(--sub)"></div></div></div>
+ <div class="section"><h2>Risk Explanation</h2><div class="card" style="color:var(--sub);font-size:13.5px" id="pr-explain"></div></div>
+ <div class="section"><h2>Recommendation</h2><div class="card" id="pr-rec"></div></div>
+</div>
+
+<!-- RESCUE -->
+<div class="page" id="p-rescue">
+ <div class="topbar"><h1>BloodRescue</h1><span class="demoTag">Expiry-Risk Matching</span></div>
+ <div class="controls">
+  <select id="rs-group" onchange="renderRescue()"></select>
+  <select id="rs-window" onchange="renderRescue()"><option value="3">≤3 days</option><option value="7" selected>≤7 days</option><option value="30">≤30 days</option></select>
+ </div>
+ <div class="grid g3" id="rescueStats"></div>
+ <div class="section"><h2>At-Risk Units</h2><div class="tablewrap"><table id="rescueTable"></table></div><div id="rescue-msg" style="color:var(--green);font-size:13px;margin-top:10px"></div></div>
+</div>
+
+<!-- BALANCE -->
+<div class="page" id="p-balance">
+ <div class="topbar"><h1>BloodBalance</h1><span class="demoTag">Multi-Bank Redistribution</span></div>
+ <div class="card">
+  <div class="controls">
+   <select id="bl-from"></select><span class="flowArrow">→</span><select id="bl-to"></select>
+   <select id="bl-group"></select>
+   <input id="bl-units" type="number" value="5" min="1" style="width:80px">
+   <select id="bl-priority"><option>Normal</option><option>High</option></select>
+   <button class="btn-red" onclick="createTransfer()">CREATE TRANSFER</button>
+  </div>
+  <div id="bl-msg" style="color:var(--green);font-size:13px"></div>
+ </div>
+ <div class="section"><h2>Transfers</h2><div class="tablewrap"><table id="transferTable"></table></div></div>
+</div>
+
+<!-- RADAR -->
+<div class="page" id="p-radar">
+ <div class="topbar"><h1>BloodRadar</h1><span class="demoTag">Network Grid Map</span></div>
+ <div class="controls">
+  <select id="rd-group" onchange="renderRadar()"></select>
+  <select id="rd-status" onchange="renderRadar()"><option value="all">All Status</option><option value="crit">Critical</option><option value="low">Low</option><option value="ok">Healthy</option><option value="exc">Excess</option></select>
+  <select id="rd-type" onchange="renderRadar()"><option value="all">All Types</option><option value="bank">Blood Banks</option><option value="hospital">Hospitals</option></select>
+ </div>
+ <div class="grid" id="radarGrid" style="grid-template-columns:repeat(auto-fill,minmax(210px,1fr))"></div>
+ <div class="section"><h2>Node Detail</h2><div class="card" id="radarDetail">Select a node above to inspect facility detail.</div></div>
+</div>
+
+<!-- DONOR -->
+<div class="page" id="p-donor">
+ <div class="topbar"><h1>BloodDonor</h1><span class="demoTag">Donor Network</span></div>
+ <div class="grid g2">
+  <div class="card">
+   <b>Your Donor Profile</b>
+   <div style="margin-top:10px;font-size:13.5px;color:var(--sub)" id="myDonorInfo"></div>
+   <div style="margin-top:12px"><button id="availBtn" class="btn-red" onclick="toggleAvail()"></button></div>
+  </div>
+  <div class="card">
+   <b>Eligibility Checker</b>
+   <div class="controls" style="margin-top:10px">
+    <input type="date" id="el-date"><input type="number" id="el-age" placeholder="Age" value="24" style="width:80px">
+    <button class="btn-ghost" onclick="checkEligibility()">CHECK</button>
+   </div>
+   <div id="el-result" style="font-size:13.5px;margin-top:8px"></div>
+  </div>
+ </div>
+ <div class="section"><h2>Donor Network</h2><div class="tablewrap"><table id="donorTable"></table></div></div>
+</div>
+
+<!-- SOS -->
+<div class="page" id="p-sos">
+ <div class="topbar"><h1>BloodSOS</h1><span class="demoTag" style="border-color:var(--red)">EMERGENCY — SIMULATED</span></div>
+ <div class="card">
+  <div class="controls">
+   <select id="sos-group"></select>
+   <input id="sos-units" type="number" value="4" min="1" style="width:80px" placeholder="Units">
+   <input id="sos-hospital" placeholder="Hospital" value="CityCare Hospital">
+   <select id="sos-urgency"><option>Critical</option><option>Life-Threatening</option></select>
+   <button class="btn-red" onclick="activateSOS()">ACTIVATE SOS</button>
+  </div>
+  <div class="sosStage mono" id="sosStages"></div>
+  <div id="sos-log" class="feed"></div>
+ </div>
+ <div class="section"><h2>Active Emergencies</h2><div class="tablewrap"><table id="sosTable"></table></div></div>
+</div>
+
+<!-- USER -->
+<div class="page" id="p-user">
+ <div class="topbar"><h1>Patient Dashboard</h1><span class="demoTag">Priya Verma · O+</span></div>
+ <div class="grid g4" id="userStats"></div>
+ <div class="section"><h2>Search Blood</h2><div class="card" style="color:var(--sub);font-size:13px">Use <span class="hlink" onclick="nav('search')">BloodSearch</span> to find compatible units near you.</div></div>
+ <div class="section"><h2>My Requests</h2><div class="tablewrap"><table id="userReqTable"></table></div></div>
+ <div class="section"><h2>Notifications</h2><div class="feed" id="userNotif"></div></div>
+</div>
+
+<!-- HOSPITAL -->
+<div class="page" id="p-hospital">
+ <div class="topbar"><h1>Hospital Dashboard</h1><span class="demoTag">CityCare Hospital <span style="color:var(--green)">✓ VERIFIED</span></span></div>
+ <div class="grid g4" id="hospStats"></div>
+ <div class="section"><h2>Incoming Requests</h2><div class="tablewrap"><table id="hospReqTable"></table></div></div>
+ <div class="section"><h2>Active Emergencies</h2><div class="tablewrap"><table id="hospSosTable"></table></div></div>
+ <div class="section"><h2>Hospital Directory (Network)</h2><div class="tablewrap"><table id="hospDirTable"></table></div></div>
+ <div class="section"><h2>Activity</h2><div class="feed" id="hospActivity"></div></div>
+</div>
+
+<!-- BANK -->
+<div class="page" id="p-bank">
+ <div class="topbar"><h1>Blood Bank Dashboard</h1><span class="demoTag" id="bankPicker"></span></div>
+ <div class="controls"><select id="bankSel" onchange="renderBank()"></select></div>
+ <div class="grid g4" id="bankStats"></div>
+ <div class="section"><h2>Inventory</h2><div class="tablewrap"><table id="bankInv"></table></div></div>
+ <div class="section"><h2>Outgoing / Incoming Transfers</h2><div class="tablewrap"><table id="bankTransfers"></table></div></div>
+ <div class="section"><h2>Incoming Requests</h2><div class="tablewrap"><table id="bankReqs"></table></div></div>
+ <div class="section"><h2>Blood Bank Directory (Network)</h2><div class="tablewrap"><table id="bankDirTable"></table></div></div>
+</div>
+
+<!-- NETWORK -->
+<div class="page" id="p-network">
+ <div class="topbar"><h1>Network Overview</h1></div>
+ <div class="grid g4" id="netStats"></div>
+ <div class="section"><h2>All Facilities</h2><div class="tablewrap"><table id="netTable"></table></div></div>
+</div>
+
+<!-- NOTIF -->
+<div class="page" id="p-notif">
+ <div class="topbar"><h1>Notifications</h1></div>
+ <div class="feed" id="notifFull"></div>
+</div>
+
+<!-- SETTINGS -->
+<div class="page" id="p-settings">
+ <div class="topbar"><h1>Settings</h1></div>
+ <div class="card"><b>Demo Controls</b><p style="color:var(--sub);font-size:13px;margin:10px 0">This is a simulated hackathon demo. All data is fictional and stored locally in your browser.</p>
+ <button class="btn-red" onclick="resetDemo()">RESET DEMO DATA</button></div>
+</div>
+
+</div></div>
+<div id="toast"></div>
+
+<script>
+const GROUPS=['O+','A+','B+','AB+','O-','A-','B-','AB-'];
+const CITIES=['Delhi','Noida','Gurugram','Faridabad','Ghaziabad','Rohini','Dwarka','Saket','Vasant Kunj','Lajpat Nagar','Greater Noida','Indirapuri','Sector 62','Karol Bagh','Mayur Vihar','Janakpuri','Pitampura','Okhla','Chattarpur','Shahdara','Connaught Place','Preet Vihar','Rajouri Garden','Model Town','Paschim Vihar','Malviya Nagar','Yamuna Vihar','Kirti Nagar','Uttam Nagar','Sarita Vihar','Dilshad Garden','Ashok Vihar','Green Park','Hauz Khas','Vikaspuri','Tilak Nagar','Rani Bagh','Nehru Place','Patparganj','Sector 18'];
+const BANK_SUFFIX=['Central Blood Bank','Blood Bank & Research Centre','Regional Blood Bank','Community Blood Centre','Red Cross Blood Bank','District Blood Bank','Life Blood Centre','Metro Blood Bank'];
+const HOSP_SUFFIX=['General Hospital','Multispecialty Hospital','Institute of Medical Sciences','Community Health Centre','Super Speciality Hospital','District Hospital','Trauma & Emergency Centre','Medical College Hospital','Charitable Hospital','Nursing Home & Hospital'];
+function rand(n){return Math.floor(Math.random()*n)}
+function uid(p){return p+'-'+Math.floor(1000+Math.random()*9000)}
+function pick(arr){return arr[rand(arr.length)]}
+
+function defaultData(){
+ const NB=50,NH=100;
+ const banks=Array.from({length:NB}).map((_,i)=>{
+  const inv={}; GROUPS.forEach(g=>inv[g]=5+rand(35));
+  const c=CITIES[i%CITIES.length];
+  return {id:'BB-'+(i+1),name:c+' '+BANK_SUFFIX[(i+Math.floor(i/CITIES.length))%BANK_SUFFIX.length]+(i>=CITIES.length?' II':''),city:c,dist:2+rand(68),inventory:inv,verified:i%2===0||i%5===0};
+ });
+ const hospitals=Array.from({length:NH}).map((_,i)=>{
+  const c=CITIES[(i+7)%CITIES.length];
+  return {id:'HS-'+(i+1),name:c+' '+HOSP_SUFFIX[(i+Math.floor(i/CITIES.length))%HOSP_SUFFIX.length]+(i>=CITIES.length?' '+(Math.floor(i/CITIES.length)+1):''),city:c,dist:1+rand(68),needs:GROUPS[rand(GROUPS.length)],verified:i%3!==1};
+ });
+ const donors=['Rahul Mehta','Priya Verma','Aman Gupta','Sara Khan','Vikram Rao','Neha Joshi','Karan Singh','Divya Nair','Arjun Malhotra','Isha Kapoor'].map((n,i)=>({
+  id:'DN-'+(i+1),name:n,group:GROUPS[rand(GROUPS.length)],city:CITIES[rand(CITIES.length)],available:i%3!==0,lastDonation:'2026-0'+(1+rand(9))+'-1'+rand(9),eligible:true}));
+ const expiryUnits=Array.from({length:9}).map((_,i)=>({id:'BL-'+(200+i),group:GROUPS[rand(GROUPS.length)],bank:banks[rand(banks.length)].name,days:1+rand(10),status:'at-risk'}));
+ return {banks,hospitals,donors,requests:[],transfers:[],expiryUnits,notifications:[{t:now(),m:`LifeLink network initialized. ${NB} blood banks and ${NH} hospitals connected.`}],activity:[{t:now(),m:'System started in demo mode.'}],sos:[],myDonor:1};
+}
+function now(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')}
+let DATA=JSON.parse(localStorage.getItem('lifelinkData')||'null')||defaultData();
+if(!DATA.banks.length || DATA.banks[0].verified===undefined || DATA.hospitals.length<100 || DATA.banks.length<50){DATA=defaultData();}
+function save(){localStorage.setItem('lifelinkData',JSON.stringify(DATA))}
+function log(msg){DATA.activity.unshift({t:now(),m:msg});if(DATA.activity.length>60)DATA.activity.pop()}
+function notify(msg){DATA.notifications.unshift({t:now(),m:msg});if(DATA.notifications.length>60)DATA.notifications.pop()}
+function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.display='none',3000)}
+
+function statusOf(units){return units<8?'crit':units<18?'low':units<40?'ok':'exc'}
+function statusLabel(s){return {crit:'CRITICAL',low:'LOW',ok:'HEALTHY',exc:'EXCESS'}[s]}
+function vbadge(item){return item.verified?'<span class="badge ok" style="margin-left:6px">✓ VERIFIED</span>':'<span class="badge low" style="margin-left:6px">UNVERIFIED</span>'}
+function bankTotal(b,g){return g?b.inventory[g]:GROUPS.reduce((s,k)=>s+b.inventory[k],0)}
+function groupTotal(g){return DATA.banks.reduce((s,b)=>s+b.inventory[g],0)}
+
+function fillSelect(id,opts,withAll){const el=document.getElementById(id);if(!el)return;const cur=el.value;
+ el.innerHTML=(withAll?'<option value="all">All Groups</option>':'')+opts.map(o=>`<option>${o}</option>`).join('');
+ if(cur && [...el.options].some(o=>o.value===cur))el.value=cur;}
+
+/* ---------- ROUTER ---------- */
+function nav(r){
+ document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+ document.getElementById('p-'+r).classList.add('active');
+ document.querySelectorAll('#sidebar .item').forEach(i=>i.classList.toggle('active',i.dataset.r===r));
+ document.getElementById('main').scrollTop=0;
+ document.getElementById('sidebar').classList.remove('open');
+ renderAll(r);
+ location.hash=r;
+}
+document.querySelectorAll('#sidebar .item').forEach(i=>i.onclick=()=>nav(i.dataset.r));
+
+function renderAll(r){
+ if(r==='landing')renderLanding();
+ if(r==='dash')renderDash();
+ if(r==='search')renderSearch();
+ if(r==='predict')renderPredict();
+ if(r==='rescue')renderRescue();
+ if(r==='balance')renderBalance();
+ if(r==='radar')renderRadar();
+ if(r==='donor')renderDonor();
+ if(r==='sos')renderSOS();
+ if(r==='user')renderUser();
+ if(r==='hospital')renderHospital();
+ if(r==='bank')renderBank();
+ if(r==='network')renderNetwork();
+ if(r==='notif')renderNotif();
+}
+
+/* ---------- LANDING ---------- */
+function renderLanding(){
+ const s=document.getElementById('landingStats');
+ s.innerHTML=[['Blood Banks',DATA.banks.length],['Hospitals',DATA.hospitals.length],['Registered Donors',DATA.donors.length],
+ ['Available Units',DATA.banks.reduce((a,b)=>a+bankTotal(b),0)],['Active Requests',DATA.requests.filter(r=>r.status!=='Fulfilled').length],['Emergencies',DATA.sos.length]]
+ .map(([l,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+ const feats=[['BloodSearch','search','🔍','Find compatible blood across the network instantly.'],
+ ['BloodPredict','predict','📈','AI-style forecasting of shortage risk by group and period.'],
+ ['BloodRescue','rescue','🛟','Flags near-expiry units and matches them to demand.'],
+ ['BloodBalance','balance','⚖️','Coordinates multi-bank redistribution transfers.'],
+ ['BloodRadar','radar','📡','Live network grid map of every facility’s status.'],
+ ['BloodDonor','donor','🫀','Verified donor availability and eligibility checks.'],
+ ['BloodSOS','sos','🚨','One-tap emergency activation with live progress tracking.'],
+ ['Bank Dashboard','bank','🏦','Full inventory, transfer and request management.']];
+ document.getElementById('featureCards').innerHTML=feats.map(([n,r,ic,d])=>`<div class="card"><div class="iconCircle">${ic}</div><b>${n}</b><p style="color:var(--sub);font-size:12.5px;margin:8px 0">${d}</p><span class="hlink" onclick="nav('${r}')">Explore →</span></div>`).join('');
+}
+
+/* ---------- DASH ---------- */
+function renderDash(){
+ document.getElementById('dashStats').innerHTML=[['Blood Banks',DATA.banks.length],['Hospitals',DATA.hospitals.length],
+ ['Total Units',DATA.banks.reduce((a,b)=>a+bankTotal(b),0)],['Active Emergencies',DATA.sos.filter(s=>s.stage<5).length]]
+ .map(([l,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+ document.getElementById('dashGroups').innerHTML=GROUPS.map(g=>{const t=groupTotal(g),st=statusOf(t);
+  return `<div class="card"><div style="display:flex;justify-content:space-between"><b>${g}</b><span class="badge ${st}">${statusLabel(st)}</span></div><div class="n mono" style="margin-top:6px">${t} units</div></div>`}).join('');
+ document.getElementById('dashReqTable').innerHTML=reqRows(DATA.requests.slice(0,6));
+ document.getElementById('dashActivity').innerHTML=feedRows(DATA.activity.slice(0,8));
+ const critGroups=GROUPS.filter(g=>statusOf(groupTotal(g))==='crit');
+ document.getElementById('dashInsight').innerHTML=critGroups.length?`⚠ Critical shortage risk detected for <b>${critGroups.join(', ')}</b> across the network. Consider redistribution via BloodBalance.`:'Network inventory is currently stable across all blood groups.';
+}
+function reqRows(list){if(!list.length)return '<tr><td style="color:var(--sub)">No requests yet — create one from BloodSearch.</td></tr>';
+ return '<tr><th>ID</th><th>Patient/Hosp</th><th>Group</th><th>Units</th><th>Urgency</th><th>Status</th></tr>'+list.map(r=>
+ `<tr><td class="mono">${r.id}</td><td>${r.patient}</td><td>${r.group}</td><td>${r.units}</td><td>${r.urgency}</td><td><span class="badge ${r.status==='Fulfilled'?'ok':r.urgency==='Emergency'?'crit':'low'}">${r.status}</span></td></tr>`).join('');}
+function feedRows(list){if(!list.length)return '<div style="color:var(--sub)">No activity yet.</div>';
+ return list.map(a=>`<div class="row"><span class="t">${a.t}</span><span>${a.m}</span></div>`).join('');}
+
+/* ---------- SEARCH ---------- */
+function resetSearch(){document.getElementById('s-radius').value='25';document.getElementById('s-urgency').value='Normal';document.getElementById('s-comp').value='Whole Blood';fillSelect('s-group',GROUPS);document.getElementById('s-group').value='O+';renderSearch();}
+function renderSearch(){
+ fillSelect('s-group',GROUPS); if(!document.getElementById('s-group').value)document.getElementById('s-group').value='O+';
+ const g=document.getElementById('s-group').value,radius=+document.getElementById('s-radius').value,urg=document.getElementById('s-urgency').value;
+ const matches=DATA.banks.filter(b=>b.dist<=radius).sort((a,b)=>a.dist-b.dist);
+ const totalUnits=matches.reduce((s,b)=>s+b.inventory[g],0);
+ const emerg=DATA.sos.filter(s=>s.group===g&&s.stage<5).length;
+ document.getElementById('searchStats').innerHTML=[['Matching Facilities',matches.length],['Compatible Units',totalUnits],['Emergency Cases',emerg],['Priority',urg]]
+ .map(([l,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+ document.getElementById('searchTable').innerHTML='<tr><th>Bank</th><th>City</th><th>Distance</th><th>'+g+' Units</th><th>Status</th></tr>'+
+ (matches.length?matches.map(b=>{const st=statusOf(b.inventory[g]);return `<tr><td>${b.name}${vbadge(b)}</td><td>${b.city}</td><td>${b.dist} km</td><td class="mono">${b.inventory[g]}</td><td><span class="badge ${st}">${statusLabel(st)}</span></td></tr>`}).join(''):'<tr><td colspan=5 style="color:var(--sub)">No facilities within selected radius.</td></tr>');
+ document.getElementById('req-msg').textContent='';
+}
+function createRequestFromSearch(){
+ const g=document.getElementById('s-group').value,units=+document.getElementById('req-units').value||1,urg=document.getElementById('s-urgency').value,patient=document.getElementById('req-patient').value||'Patient';
+ const bank=DATA.banks.filter(b=>b.dist<=+document.getElementById('s-radius').value).sort((a,b)=>b.inventory[g]-a.inventory[g])[0];
+ const req={id:uid('RQ'),patient,group:g,units,urgency:urg,status:'Pending',bank:bank?bank.name:'Network'};
+ if(bank && bank.inventory[g]>=units){bank.inventory[g]-=units;req.status='Fulfilled';}
+ DATA.requests.unshift(req); log(`Request ${req.id}: ${units} units ${g} for ${patient} (${req.status}).`); notify(`New request ${req.id} — ${units}x ${g} — ${req.status}`);
+ save(); document.getElementById('req-msg').textContent=`✓ Request ${req.id} created — status: ${req.status}.`; renderSearch();
+}
+
+/* ---------- PREDICT ---------- */
+function renderPredict(){
+ fillSelect('pr-group',GROUPS); if(!document.getElementById('pr-group').value)document.getElementById('pr-group').value='O-';
+ const g=document.getElementById('pr-group').value,period=+document.getElementById('pr-period').value;
+ const inv=groupTotal(g); const demandFactor=(g.includes('O')?1.3:1)*(period/7);
+ let risk=Math.min(96,Math.max(4,Math.round(100-(inv/2)+demandFactor*8)));
+ const conf=Math.min(97,60+Math.round(inv/4));
+ const projected=Math.max(0,Math.round(inv-demandFactor*6));
+ document.getElementById('predictStats').innerHTML=[['Shortage Risk',risk+'%'],['Confidence',conf+'%'],['Current Inventory',inv+' units'],['Projected ('+period+'d)',projected+' units']]
+ .map(([l,n])=>`<div class="card stat"><div class="n" style="color:${l==='Shortage Risk'&&risk>60?'#8c1522':'inherit'}">${n}</div><div class="l">${l}</div></div>`).join('');
+ document.getElementById('pr-bar').style.width=Math.min(100,(projected/(inv||1))*100)+'%';
+ document.getElementById('pr-bartext').textContent=`${projected} / ${inv} units projected to remain after ${period} days`;
+ document.getElementById('pr-explain').textContent=`Based on historical demand patterns and current network inventory, ${g} shows a ${risk}% probability of shortage within ${period} days. ${g.includes('O')?'O-type groups see higher cross-compatibility demand.':''} Confidence is ${conf}% given current data density.`;
+ document.getElementById('pr-rec').innerHTML=risk>60?`⚠ <b>Recommended:</b> Trigger redistribution via BloodBalance and notify eligible ${g} donors.`:`✓ Inventory outlook for ${g} is stable — no action required.`;
+}
+
+/* ---------- RESCUE ---------- */
+function renderRescue(){
+ fillSelect('rs-group',GROUPS,true); if(!document.getElementById('rs-group').value)document.getElementById('rs-group').value='all';
+ const g=document.getElementById('rs-group').value,win=+document.getElementById('rs-window').value;
+ const list=DATA.expiryUnits.filter(u=>u.status==='at-risk'&&(g==='all'||u.group===g)&&u.days<=win);
+ document.getElementById('rescueStats').innerHTML=[['At-Risk Units',DATA.expiryUnits.filter(u=>u.status==='at-risk').length],['Rescued (Total)',DATA.expiryUnits.filter(u=>u.status==='rescued').length],['Shown Now',list.length]]
+ .map(([l,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+ document.getElementById('rescueTable').innerHTML='<tr><th>Unit</th><th>Group</th><th>Bank</th><th>Days Left</th><th>Suggested Destination</th><th></th></tr>'+
+ (list.length?list.map(u=>{const dest=DATA.hospitals[rand(DATA.hospitals.length)].name;
+ return `<tr><td class="mono">${u.id}</td><td>${u.group}</td><td>${u.bank}</td><td><span class="badge ${u.days<=3?'crit':'low'}">${u.days}d</span></td><td>${dest}</td><td><button class="btn-red" onclick="rescueUnit('${u.id}','${dest.replace(/'/g,"")}')">RESCUE UNIT</button></td></tr>`}).join(''):'<tr><td colspan=6 style="color:var(--sub)">No units match this filter.</td></tr>');
+}
+function rescueUnit(id,dest){
+ const u=DATA.expiryUnits.find(x=>x.id===id); u.status='rescued';
+ DATA.transfers.unshift({id:uid('TR'),from:u.bank,to:dest,group:u.group,units:1,status:'Pending',priority:'High'});
+ log(`Unit ${id} (${u.group}) rescued and assigned to ${dest}.`); notify(`Unit ${id} rescued → ${dest}`);
+ save(); document.getElementById('rescue-msg').textContent=`✓ Unit ${id} successfully assigned to ${dest}.`; renderRescue();
+}
+
+/* ---------- BALANCE ---------- */
+function renderBalance(){
+ fillSelect('bl-from',DATA.banks.map(b=>b.name)); fillSelect('bl-to',DATA.banks.map(b=>b.name));
+ if(document.getElementById('bl-to').value===document.getElementById('bl-from').value)document.getElementById('bl-to').selectedIndex=1;
+ fillSelect('bl-group',GROUPS);
+ renderTransferTable();
+}
+function renderTransferTable(){
+ document.getElementById('transferTable').innerHTML='<tr><th>ID</th><th>From</th><th>To</th><th>Group</th><th>Units</th><th>Priority</th><th>Status</th><th></th></tr>'+
+ (DATA.transfers.length?DATA.transfers.map(t=>`<tr><td class="mono">${t.id}</td><td>${t.from}</td><td>${t.to}</td><td>${t.group}</td><td>${t.units}</td><td>${t.priority}</td><td><span class="badge ${t.status==='Delivered'?'ok':'low'}">${t.status}</span></td><td>${t.status!=='Delivered'?`<button class="btn-ghost" onclick="advanceTransfer('${t.id}')">ADVANCE</button>`:''}</td></tr>`).join(''):'<tr><td colspan=8 style="color:var(--sub)">No transfers yet.</td></tr>');
+}
+function createTransfer(){
+ const from=document.getElementById('bl-from').value,to=document.getElementById('bl-to').value,g=document.getElementById('bl-group').value,units=+document.getElementById('bl-units').value||1,pr=document.getElementById('bl-priority').value;
+ if(from===to){document.getElementById('bl-msg').textContent='Source and destination must differ.';return}
+ const fb=DATA.banks.find(b=>b.name===from);
+ if(fb.inventory[g]<units){document.getElementById('bl-msg').textContent=`⚠ ${from} only has ${fb.inventory[g]} units of ${g}.`;return}
+ fb.inventory[g]-=units;
+ DATA.transfers.unshift({id:uid('TR'),from,to,group:g,units,status:'Pending',priority:pr});
+ log(`Transfer created: ${units}x ${g} from ${from} to ${to}.`); notify(`Transfer ${g} ${from}→${to} created`);
+ save(); document.getElementById('bl-msg').textContent=`✓ Transfer created and pending.`; renderTransferTable();
+}
+function advanceTransfer(id){
+ const t=DATA.transfers.find(x=>x.id===id);
+ t.status=t.status==='Pending'?'In Transit':t.status==='In Transit'?'Delivered':'Delivered';
+ if(t.status==='Delivered'){const tb=DATA.banks.find(b=>b.name===t.to); if(tb)tb.inventory[t.group]+=t.units; log(`Transfer ${id} delivered to ${t.to}.`);}
+ save(); renderTransferTable(); renderAll(currentRoute());
+}
+
+/* ---------- RADAR ---------- */
+function renderRadar(){
+ fillSelect('rd-group',GROUPS,true); if(!document.getElementById('rd-group').value)document.getElementById('rd-group').value='all';
+ const g=document.getElementById('rd-group').value,st=document.getElementById('rd-status').value,ty=document.getElementById('rd-type').value;
+ let nodes=[...DATA.banks.map(b=>({...b,type:'bank'})),...DATA.hospitals.map(h=>({...h,type:'hospital',inventory:null}))];
+ nodes=nodes.filter(n=>ty==='all'||n.type===ty);
+ document.getElementById('radarGrid').innerHTML=nodes.map(n=>{
+  const units=n.type==='bank'?(g==='all'?bankTotal(n):n.inventory[g]):null;
+  const status=n.type==='bank'?statusOf(units):'ok';
+  if(st!=='all'&&n.type==='bank'&&status!==st)return '';
+  const color={crit:'#8c1522',low:'#a5690a',ok:'#1f7a4d',exc:'#1c5a8c'}[status];
+  return `<div class="card" style="cursor:pointer" onclick='showNode(${JSON.stringify(n).replace(/'/g,"&apos;")})'>
+   <div><span class="node" style="background:${color}"></span><b>${n.name}</b>${n.verified?'<span class="badge ok" style="margin-left:6px;font-size:9px">✓</span>':''}</div>
+   <div style="color:var(--sub);font-size:12px;margin-top:6px">${n.city} · ${n.type==='bank'?'Blood Bank':'Hospital'}</div>
+   ${n.type==='bank'?`<div class="mono" style="margin-top:6px">${units} units</div>`:`<div style="margin-top:6px;font-size:12px;color:var(--sub)">Needs: ${n.needs}</div>`}
+  </div>`}).join('')||'<div style="color:var(--sub)">No nodes match this filter.</div>';
+}
+function showNode(n){
+ const near=DATA.banks.filter(b=>b.id!==n.id).sort((a,b)=>a.dist-b.dist).slice(0,3).map(b=>b.name).join(', ');
+ const trs=DATA.transfers.filter(t=>t.from===n.name||t.to===n.name).length;
+ document.getElementById('radarDetail').innerHTML=`<b>${n.name}</b> ${vbadge(n)} — ${n.city}<br><br>
+ ${n.type==='bank'?'Total inventory: '+bankTotal(n)+' units<br>':'Current need: '+n.needs+'<br>'}
+ Active transfers: ${trs}<br>Nearby facilities: ${near}<br>Last updated: ${now()}`;
+}
+
+/* ---------- DONOR ---------- */
+function renderDonor(){
+ const me=DATA.donors[DATA.myDonor];
+ document.getElementById('myDonorInfo').innerHTML=`${me.name} · ${me.group} · ${me.city}<br>Last donation: ${me.lastDonation}<br>Status: <span class="badge ${me.available?'ok':'low'}">${me.available?'AVAILABLE':'UNAVAILABLE'}</span>`;
+ const btn=document.getElementById('availBtn'); btn.textContent=me.available?'SET UNAVAILABLE':'AVAILABLE FOR EMERGENCY';
+ document.getElementById('donorTable').innerHTML='<tr><th>Name</th><th>Group</th><th>City</th><th>Status</th></tr>'+DATA.donors.map(d=>`<tr><td>${d.name}</td><td>${d.group}</td><td>${d.city}</td><td><span class="badge ${d.available?'ok':'low'}">${d.available?'AVAILABLE':'OFF'}</span></td></tr>`).join('');
+}
+function toggleAvail(){const me=DATA.donors[DATA.myDonor];me.available=!me.available; log(`${me.name} set ${me.available?'available':'unavailable'} for emergencies.`); save(); renderDonor();}
+function checkEligibility(){
+ const date=document.getElementById('el-date').value,age=+document.getElementById('el-age').value;
+ let ok=true,reason='Eligible to donate.';
+ if(age<18||age>65){ok=false;reason='Age must be between 18–65.';}
+ else if(date){const days=(Date.now()-new Date(date))/86400000; if(days<90){ok=false;reason=`Must wait ${Math.ceil(90-days)} more days since last donation.`;}}
+ document.getElementById('el-result').innerHTML=`<span class="badge ${ok?'ok':'crit'}">${ok?'ELIGIBLE':'NOT ELIGIBLE'}</span> — ${reason}`;
+}
+
+/* ---------- SOS ---------- */
+const STAGES=['SOS ACTIVATED','SEARCHING NETWORK','MATCH FOUND','BANK CONFIRMED','DISPATCHED','DELIVERED'];
+function renderSOS(){
+ fillSelect('sos-group',GROUPS);
+ document.getElementById('sosTable').innerHTML='<tr><th>ID</th><th>Group</th><th>Hospital</th><th>Stage</th></tr>'+
+ (DATA.sos.length?DATA.sos.map(s=>`<tr><td class="mono">${s.id}</td><td>${s.group}</td><td>${s.hospital}</td><td><span class="badge ${s.stage>=5?'ok':'crit'}">${STAGES[s.stage]}</span></td></tr>`).join(''):'<tr><td colspan=4 style="color:var(--sub)">No active emergencies.</td></tr>');
+ document.getElementById('sosStages').innerHTML=STAGES.map((s,i)=>`<div class="s" data-i="${i}">${s}</div>`).join('');
+}
+function activateSOS(){
+ const g=document.getElementById('sos-group').value,units=+document.getElementById('sos-units').value||1,hosp=document.getElementById('sos-hospital').value,urg=document.getElementById('sos-urgency').value;
+ const sos={id:uid('SOS'),group:g,units,hospital:hosp,urgency:urg,stage:0};
+ DATA.sos.unshift(sos); log(`SOS ${sos.id} activated: ${units}x ${g} for ${hosp}.`); notify(`🚨 Emergency ${sos.id}: ${units}x ${g} needed at ${hosp}`); save(); renderSOS();
+ const logEl=document.getElementById('sos-log'); logEl.innerHTML='';
+ function step(){
+  const cells=document.querySelectorAll('#sosStages .s');
+  cells.forEach((c,i)=>{c.classList.toggle('done',i<sos.stage);c.classList.toggle('now',i===sos.stage);});
+  logEl.innerHTML=`<div class="row"><span class="t">${now()}</span><span>${STAGES[sos.stage]}${sos.stage===2?' — bank identified with sufficient '+g+' stock':sos.stage===4?' — courier en route':''}</span></div>`+logEl.innerHTML;
+  if(sos.stage===5){
+   const bank=DATA.banks.filter(b=>b.inventory[g]>=units).sort((a,b)=>a.dist-b.dist)[0];
+   if(bank)bank.inventory[g]-=units;
+   log(`SOS ${sos.id} fulfilled — delivered to ${hosp}.`); notify(`✓ Emergency ${sos.id} delivered to ${hosp}`);
+   save(); renderSOS(); toast(`SOS ${sos.id} delivered to ${hosp}`); return;
+  }
+  sos.stage++; save(); setTimeout(step,900);
+ }
+ step();
+}
+
+/* ---------- USER ---------- */
+function renderUser(){
+ document.getElementById('userStats').innerHTML=[['Blood Group','O+'],['My Requests',DATA.requests.filter(r=>r.patient.includes('Priya')||r.patient==='Patient A. Sharma').length],['Network Units (O+)',groupTotal('O+')],['Nearby Banks',DATA.banks.filter(b=>b.dist<=25).length]]
+ .map(([l,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+ document.getElementById('userReqTable').innerHTML=reqRows(DATA.requests.slice(0,8));
+ document.getElementById('userNotif').innerHTML=feedRows(DATA.notifications.slice(0,6));
+}
+
+/* ---------- HOSPITAL ---------- */
+function renderHospital(){
+ document.getElementById('hospStats').innerHTML=[['Pending Requests',DATA.requests.filter(r=>r.status==='Pending').length],['Fulfilled',DATA.requests.filter(r=>r.status==='Fulfilled').length],['Active SOS',DATA.sos.filter(s=>s.stage<5).length],['Incoming Transfers',DATA.transfers.filter(t=>t.status!=='Delivered').length]]
+ .map(([l,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+ document.getElementById('hospReqTable').innerHTML=reqRows(DATA.requests);
+ document.getElementById('hospSosTable').innerHTML='<tr><th>ID</th><th>Group</th><th>Stage</th></tr>'+(DATA.sos.length?DATA.sos.map(s=>`<tr><td class="mono">${s.id}</td><td>${s.group}</td><td>${STAGES[s.stage]}</td></tr>`).join(''):'<tr><td colspan=3 style="color:var(--sub)">None active.</td></tr>');
+ document.getElementById('hospDirTable').innerHTML='<tr><th>Hospital</th><th>City</th><th>Distance</th><th>Current Need</th><th>Status</th></tr>'+
+ DATA.hospitals.map(h=>`<tr><td>${h.name}</td><td>${h.city}</td><td>${h.dist} km</td><td>${h.needs}</td><td>${vbadge(h)}</td></tr>`).join('');
+ document.getElementById('hospActivity').innerHTML=feedRows(DATA.activity.slice(0,8));
+}
+
+/* ---------- BANK ---------- */
+function renderBank(){
+ fillSelect('bankSel',DATA.banks.map(b=>b.name));
+ const bank=DATA.banks.find(b=>b.name===document.getElementById('bankSel').value)||DATA.banks[0];
+ document.getElementById('bankPicker').innerHTML=vbadge(bank);
+ document.getElementById('bankStats').innerHTML=[['Total Units',bankTotal(bank)],['Critical Groups',GROUPS.filter(g=>statusOf(bank.inventory[g])==='crit').length],['Pending Transfers',DATA.transfers.filter(t=>(t.from===bank.name||t.to===bank.name)&&t.status!=='Delivered').length],['Requests',DATA.requests.filter(r=>r.bank===bank.name).length]]
+ .map(([l,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+ document.getElementById('bankInv').innerHTML='<tr><th>Group</th><th>Units</th><th>Status</th></tr>'+GROUPS.map(g=>`<tr><td>${g}</td><td class="mono">${bank.inventory[g]}</td><td><span class="badge ${statusOf(bank.inventory[g])}">${statusLabel(statusOf(bank.inventory[g]))}</span></td></tr>`).join('');
+ document.getElementById('bankTransfers').innerHTML='<tr><th>ID</th><th>From</th><th>To</th><th>Group</th><th>Units</th><th>Status</th></tr>'+
+ (DATA.transfers.filter(t=>t.from===bank.name||t.to===bank.name).map(t=>`<tr><td class="mono">${t.id}</td><td>${t.from}</td><td>${t.to}</td><td>${t.group}</td><td>${t.units}</td><td><span class="badge ${t.status==='Delivered'?'ok':'low'}">${t.status}</span></td></tr>`).join('')||'<tr><td colspan=6 style="color:var(--sub)">No transfers.</td></tr>');
+ document.getElementById('bankReqs').innerHTML=reqRows(DATA.requests.filter(r=>r.bank===bank.name));
+ document.getElementById('bankDirTable').innerHTML='<tr><th>Blood Bank</th><th>City</th><th>Distance</th><th>Total Units</th><th>Status</th></tr>'+
+ DATA.banks.map(b=>`<tr><td>${b.name}</td><td>${b.city}</td><td>${b.dist} km</td><td class="mono">${bankTotal(b)}</td><td>${vbadge(b)}</td></tr>`).join('');
+}
+
+/* ---------- NETWORK ---------- */
+function renderNetwork(){
+ document.getElementById('netStats').innerHTML=[['Blood Banks',DATA.banks.length],['Hospitals',DATA.hospitals.length],['Total Units',DATA.banks.reduce((a,b)=>a+bankTotal(b),0)],['Total Transfers',DATA.transfers.length]]
+ .map(([l,n])=>`<div class="card stat"><div class="n">${n}</div><div class="l">${l}</div></div>`).join('');
+ document.getElementById('netTable').innerHTML='<tr><th>Facility</th><th>Type</th><th>City</th><th>Detail</th><th>Status</th></tr>'+
+ [...DATA.banks.map(b=>`<tr><td>${b.name}</td><td>Blood Bank</td><td>${b.city}</td><td>${bankTotal(b)} units</td><td>${vbadge(b)}</td></tr>`),
+ ...DATA.hospitals.map(h=>`<tr><td>${h.name}</td><td>Hospital</td><td>${h.city}</td><td>Needs ${h.needs}</td><td>${vbadge(h)}</td></tr>`)].join('');
+}
+
+/* ---------- NOTIF ---------- */
+function renderNotif(){document.getElementById('notifFull').innerHTML=feedRows(DATA.notifications);}
+
+function currentRoute(){return location.hash.replace('#','')||'landing'}
+function resetDemo(){localStorage.removeItem('lifelinkData');DATA=defaultData();save();toast('Demo data reset.');nav('dash');}
+
+/* init */
+GROUPS; fillSelect('s-group',GROUPS);
+nav(currentRoute());
+const revObserver=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});
+document.querySelectorAll('.reveal').forEach(el=>revObserver.observe(el));
+</script>
+</body>
+</html>

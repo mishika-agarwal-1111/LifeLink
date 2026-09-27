@@ -376,9 +376,38 @@ function defaultData(){
  return {banks,hospitals,donors,requests:[],transfers:[],expiryUnits,notifications:[{t:now(),m:`LifeLink network initialized. ${NB} blood banks and ${NH} hospitals connected.`}],activity:[{t:now(),m:'System started in demo mode.'}],sos:[],myDonor:1};
 }
 function now(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')}
+const API_URL='https://life-link-woad.vercel.app';
 let DATA=JSON.parse(localStorage.getItem('lifelinkData')||'null')||defaultData();
 if(!DATA.banks.length || DATA.banks[0].verified===undefined || DATA.hospitals.length<100 || DATA.banks.length<50){DATA=defaultData();}
-function save(){localStorage.setItem('lifelinkData',JSON.stringify(DATA))}
+async function syncFromBackend(){
+  try{
+    const res=await fetch(`${API_URL}/api/data`);
+    if(!res.ok) throw new Error(`API ${res.status}`);
+    const remote=await res.json();
+
+    if(Array.isArray(remote.banks) && remote.banks.length>0 && Array.isArray(remote.hospitals) && remote.hospitals.length>0){
+      DATA=remote;
+      localStorage.setItem('lifelinkData',JSON.stringify(DATA));
+      nav(currentRoute());
+    }else{
+      await save();
+    }
+  }catch(err){
+    console.warn('LifeLink backend unavailable; using local demo data.',err);
+  }
+}
+async function save(){
+  localStorage.setItem('lifelinkData',JSON.stringify(DATA));
+  try{
+    await fetch(`${API_URL}/api/data`,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(DATA)
+    });
+  }catch(err){
+    console.warn('LifeLink backend sync failed.',err);
+  }
+}
 function log(msg){DATA.activity.unshift({t:now(),m:msg});if(DATA.activity.length>60)DATA.activity.pop()}
 function notify(msg){DATA.notifications.unshift({t:now(),m:msg});if(DATA.notifications.length>60)DATA.notifications.pop()}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.display='none',3000)}
@@ -663,6 +692,7 @@ function resetDemo(){localStorage.removeItem('lifelinkData');DATA=defaultData();
 /* init */
 GROUPS; fillSelect('s-group',GROUPS);
 nav(currentRoute());
+syncFromBackend();
 const revObserver=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('in')}),{threshold:.12});
 document.querySelectorAll('.reveal').forEach(el=>revObserver.observe(el));
 </script>

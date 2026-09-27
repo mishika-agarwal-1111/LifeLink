@@ -141,25 +141,6 @@ def get_data():
     })
 @app.route("/api/data", methods=["POST"])
 def save_data():
-    global app_data
-
-    data = request.get_json()
-
-    if data is None:
-        return jsonify({
-            "error": "No JSON data received"
-        }), 400
-
-    app_data = data
-
-    return jsonify({
-        "status": "saved",
-        "message": "LifeLink data saved successfully"
-    })
-
-
-@app.route("/api/data", methods=["POST"])
-def save_data():
     data = request.get_json()
 
     if not data:
@@ -172,6 +153,8 @@ def save_data():
         "status": "received",
         "message": "Data received by LifeLink API"
     })
+
+
 @app.route("/api/reset", methods=["POST"])
 def reset_data():
     global app_data

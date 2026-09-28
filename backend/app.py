@@ -152,7 +152,7 @@ def get_data():
             "id": bank["id"],
             "name": bank["name"],
             "city": bank["city"],
-            "dist": 0,
+            "dist": [4, 11, 7, 18, 3, 14, 9, 22, 6, 16, 28, 12, 35, 8, 19, 25, 5, 31, 13, 21, 10, 27, 17, 33, 15, 24, 38, 20, 29, 42, 7, 34, 11, 26, 18, 45, 9, 23, 32, 14, 37, 6, 28, 16, 41, 12, 30, 21, 36][len(formatted_banks)],
             "inventory": inventory_map.get(bank["id"], {}),
             "verified": bank["verified"]
         })

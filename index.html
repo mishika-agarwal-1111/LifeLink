@@ -377,15 +377,30 @@ function defaultData(){
 }
 function now(){const d=new Date();return d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0')}
 const API_URL='https://life-link-woad.vercel.app';
-let DATA=JSON.parse(localStorage.getItem('lifelinkData')||'null')||defaultData();
-if(!DATA.banks.length || DATA.banks[0].verified===undefined || DATA.hospitals.length<100 || DATA.banks.length<50){DATA=defaultData();}
+
+let DATA=JSON.parse(localStorage.getItem('lifelinkData')||'null');
+
+if(!DATA || !Array.isArray(DATA.banks) || !Array.isArray(DATA.hospitals)){
+  DATA=defaultData();
+}
+
+if(DATA.banks.length<50 || DATA.hospitals.length<100){
+  DATA=defaultData();
+}
+
 async function syncFromBackend(){
   try{
     const res=await fetch(`${API_URL}/api/data`);
     if(!res.ok) throw new Error(`API ${res.status}`);
+
     const remote=await res.json();
 
-    if(Array.isArray(remote.bloodBanks) && remote.bloodBanks.length>0 && Array.isArray(remote.hospitals) && remote.hospitals.length>0){
+    if(
+      Array.isArray(remote.banks) &&
+      remote.banks.length>0 &&
+      Array.isArray(remote.hospitals) &&
+      remote.hospitals.length>0
+    ){
       DATA=remote;
       localStorage.setItem('lifelinkData',JSON.stringify(DATA));
       nav(currentRoute());

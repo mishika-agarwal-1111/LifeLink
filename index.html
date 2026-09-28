@@ -385,7 +385,7 @@ async function syncFromBackend(){
     if(!res.ok) throw new Error(`API ${res.status}`);
     const remote=await res.json();
 
-    if(Array.isArray(remote.banks) && remote.banks.length>0 && Array.isArray(remote.hospitals) && remote.hospitals.length>0){
+    if(Array.isArray(remote.bloodBanks) && remote.bloodBanks.length>0 && Array.isArray(remote.hospitals) && remote.hospitals.length>0){
       DATA=remote;
       localStorage.setItem('lifelinkData',JSON.stringify(DATA));
       nav(currentRoute());

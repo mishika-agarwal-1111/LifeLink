@@ -128,16 +128,59 @@ def health():
 def get_data():
     hospitals = supabase.table("hospitals").select("*").execute().data
     blood_banks = supabase.table("blood_banks").select("*").execute().data
+    inventory_rows = supabase.table("blood_inventory").select("*").execute().data
     donors = supabase.table("donors").select("*").execute().data
     requests = supabase.table("blood_requests").select("*").execute().data
     alerts = supabase.table("alerts").select("*").execute().data
 
+    inventory_map = {}
+
+    for row in inventory_rows:
+        bank_id = row["blood_bank_id"]
+        group = row["blood_group"]
+        units = row["units"]
+
+        if bank_id not in inventory_map:
+            inventory_map[bank_id] = {}
+
+        inventory_map[bank_id][group] = units
+
+    formatted_banks = []
+
+    for bank in blood_banks:
+        formatted_banks.append({
+            "id": bank["id"],
+            "name": bank["name"],
+            "city": bank["city"],
+            "dist": 0,
+            "inventory": inventory_map.get(bank["id"], {}),
+            "verified": bank["verified"]
+        })
+
+    formatted_hospitals = []
+
+    for hospital in hospitals:
+        formatted_hospitals.append({
+            "id": hospital["id"],
+            "name": hospital["name"],
+            "city": hospital["city"],
+            "dist": hospital["distance_km"] or 0,
+            "needs": hospital["blood_need"],
+            "verified": hospital["verified"]
+        })
+
     return jsonify({
-        "hospitals": hospitals,
-        "bloodBanks": blood_banks,
+        "banks": formatted_banks,
+        "hospitals": formatted_hospitals,
         "donors": donors,
         "requests": requests,
-        "alerts": alerts
+        "alerts": alerts,
+        "transfers": [],
+        "expiryUnits": [],
+        "notifications": [],
+        "activity": [],
+        "sos": [],
+        "myDonor": 1
     })
 @app.route("/api/data", methods=["POST"])
 def save_data():
